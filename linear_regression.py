@@ -2,31 +2,29 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.datasets import fetch_california_housing
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+columns = [
+    "CRIM", "ZN", "INDUS", "CHAS", "NOX", "RM", "AGE",
+    "DIS", "RAD", "TAX", "PTRATIO", "B", "LSTAT", "MEDV"
+]
 
-# Step 1: Load Dataset
-housing = fetch_california_housing()
+df = pd.read_csv("dataset_.csv", skiprows=41, header=None, names=columns)
+df = df[df["CRIM"] != "@DATA"]
+df.reset_index(drop=True, inplace=True)
+df = df.apply(pd.to_numeric)
 
-df = pd.DataFrame(
-    housing.data,
-    columns=housing.feature_names
-)
 
-df["Price"] = housing.target
-
-print("Dataset Shape:", df.shape)
-print("\nFirst 5 Rows:")
 print(df.head())
+print(df.shape)
+print(df.isnull().sum())
+print(df.duplicated().sum())
+X = df.drop("MEDV", axis=1)
+y = df["MEDV"]
 
-# Step 2: Define Features and Target
-X = df.drop("Price", axis=1)
-y = df["Price"]
-
-# Step 3: Split Dataset
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -34,10 +32,12 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 print("\nTraining Data Shape:", X_train.shape)
 print("Testing Data Shape:", X_test.shape)
-
-
 # Step 4: Train Linear Regression
 linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
@@ -128,3 +128,5 @@ plt.title("Coefficient Comparison")
 plt.ylabel("Coefficient Value")
 plt.tight_layout()
 plt.show()
+
+
